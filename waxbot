@@ -1,0 +1,115 @@
+import org.rspeer.runetek.adapter.Positionable;
+import org.rspeer.runetek.adapter.component.Item;
+import org.rspeer.runetek.adapter.scene.Player;
+import org.rspeer.runetek.adapter.scene.SceneObject;
+import org.rspeer.runetek.api.commons.Time;
+import org.rspeer.runetek.api.commons.math.Random;
+import org.rspeer.runetek.api.component.Dialog;
+import org.rspeer.runetek.api.component.tab.Inventory;
+import org.rspeer.runetek.api.movement.Movement;
+import org.rspeer.runetek.api.movement.position.Position;
+import org.rspeer.runetek.api.movement.position.ScenePosition;
+import org.rspeer.runetek.api.scene.Players;
+import org.rspeer.runetek.api.scene.SceneObjects;
+import org.rspeer.script.Script;
+import org.rspeer.script.ScriptMeta;
+import org.rspeer.runetek.api.component.Bank;
+import org.rspeer.runetek.api.movement.position.Area;
+import org.rspeer.script.events.breaking.BreakEvent;
+
+import java.util.function.Predicate;
+
+
+
+
+@ScriptMeta(developer = "Setsu", desc = "Filling buckets with wax", name = "waxbot")
+public class waxbot extends Script {
+
+    private String TOOL = "Insect repellent";
+    private String bucket = "Bucket";
+    private String wax = "Bucket of wax";
+    private String Beehive = "Beehive";
+
+
+    private static final Area bank = Area.rectangular(2809, 3441, 2812, 3441);
+    private static final Area bees = Area.rectangular(2763, 3443, 2763, 3443);
+
+
+    @Override
+    public void onStart() {
+        Bank.open();
+        Bank.withdraw(TOOL, 1);
+        Time.sleep(300, 600);
+        Bank.close();
+    }
+
+    @Override
+    public int loop() {
+        if (Movement.getRunEnergy() > 35 && !Movement.isRunEnabled()) {
+            Movement.toggleRun(true); }
+
+        if (Inventory.contains(wax)) {
+            Movement.walkTo(bank.getCenter());
+            Time.sleep(600, 700);
+        }
+        if (bank.contains(Players.getLocal())) {
+            return 500;
+        }
+
+
+
+
+
+
+        if (!Inventory.contains(bucket)) {
+            Bank.open();
+            Inventory.contains(wax);
+            Bank.deposit(wax, 27);
+            Time.sleepUntil(() -> Inventory.containsOnly(TOOL), Random.nextInt(3000, 6000));
+            Bank.withdraw(bucket, 27);
+            Time.sleep(500, 600);
+            Bank.close();
+        }
+
+        if (Inventory.contains(bucket)) {
+            Movement.walkTo(bees.getCenter());
+            Time.sleep(700,900);
+
+        }
+
+
+        if (!bees.contains(Players.getLocal())) {
+
+            return 400;
+        }
+        Time.sleep(200,400);
+
+        for (int l = 0; l < 99; l++) {
+            if (!Inventory.contains(bucket)){
+                break;
+            }
+            System.out.println(l);
+
+
+            Inventory.use(i -> i.getName().equals("Insect repellent"), SceneObjects.getNearest(o -> o.getName().equals("Beehive")));
+            Time.sleep(600, 800);
+            Inventory.use(a -> a.getName().equals("Insect repellent"), SceneObjects.getNearest(o -> o.getName().equals("Beehive")));
+            Time.sleep(600, 800);
+            Inventory.use(i -> i.getName().equals("Bucket"), SceneObjects.getNearest(o -> o.getName().equals("Beehive")));
+            Time.sleep(600, 800);
+            Inventory.use(a -> a.getName().equals("Bucket"), SceneObjects.getNearest(o -> o.getName().equals("Beehive")));
+            Time.sleep(600, 800);
+            Dialog.processContinue();
+
+
+        }
+
+
+
+        return 300;
+    }
+}
+
+
+
+
